@@ -86,7 +86,7 @@ func prepareKConfig(configFile string, parsedPflags *pflag.FlagSet) (*koanf.Koan
 	}
 
 	// 2. env vars
-	err := kConfig.Load(env.Provider(ENV_PREFIX, ".", func(s string) string {
+	err := kConfig.Load(env.Provider(ENV_PREFIX, "_", func(s string) string {
 		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, ENV_PREFIX)), "_", ".", -1)
 	}), nil)
 	if err != nil {
@@ -94,7 +94,7 @@ func prepareKConfig(configFile string, parsedPflags *pflag.FlagSet) (*koanf.Koan
 	}
 
 	// 3. pflag (hopefully only defined flags
-	err = kConfig.Load(posflag.Provider(parsedPflags, ".", nil), nil, koanf.WithMergeFunc(customMergeFunc))
+	err = kConfig.Load(posflag.Provider(parsedPflags, "-", nil), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -102,15 +102,14 @@ func prepareKConfig(configFile string, parsedPflags *pflag.FlagSet) (*koanf.Koan
 	return kConfig, nil
 }
 
-func customMergeFunc(src, dest map[string]interface{}) error {
-	for srcKey, srcValue := range src {
-		switch srcKey {
-		case "log-level":
-			newKey := "log.level"
-			dest[newKey] = srcValue
-		default:
-			dest[srcKey] = srcValue
-		}
-	}
-	return nil
-}
+// func customMergeFunc(src, dest map[string]interface{}) error {
+// 	for srcKey, srcValue := range src {
+// 		switch srcKey {
+// 		// case "log-level":
+// 		// 	dest["log"].(map[string]interface{})["level"] = srcValue
+// 		default:
+// 			dest[srcKey] = srcValue
+// 		}
+// 	}
+// 	return nil
+// }
